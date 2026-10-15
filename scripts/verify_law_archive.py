@@ -136,7 +136,7 @@ def main() -> int:
             "zip_entry_timestamp_min": min((entry.date_time for entry in entries), default=None),
             "zip_entry_timestamp_max": max((entry.date_time for entry in entries), default=None),
             "zip_entry_timestamp_timezone": "not encoded in ZIP DOS timestamps; do not infer a timezone",
-            "xml_index_range_zero_based_end_exclusive": [args.start_index, min(args.end_index or len(xml_entries), len(xml_entries))],
+            "xml_index_range_zero_based_end_exclusive": [args.start_index, min(args.end_index if args.end_index is not None else len(xml_entries), len(xml_entries))],
         })
 
         end = min(args.end_index if args.end_index is not None else len(xml_entries), len(xml_entries))
@@ -199,12 +199,36 @@ def main() -> int:
         "xml_parse_error_examples": parse_errors[:20],
         "elapsed_seconds": round(time.time() - started, 2),
     })
+    failure_reasons = []
+    if not args.skip_crc and bad_zip_member is not None:
+        failure_reasons.append(f"ZIP CRC test failed: {bad_zip_member}")
+    if malformed_url_rows:
+        failure_reasons.append(f"Malformed CSV body URLs: {malformed_url_rows}")
+    if any(count > 1 for count in path_counts.values()):
+        failure_reasons.append("Duplicate XML paths derived from CSV body URLs")
+    if matched_rows != len(rows):
+        failure_reasons.append("Not every CSV row matched an XML file")
+    if missing_paths:
+        failure_reasons.append("CSV rows point to XML files missing from the ZIP")
+    if extra_paths:
+        failure_reasons.append("ZIP XML files without matching CSV rows")
+    if other_files:
+        failure_reasons.append("Unexpected regular files outside XML/CSV")
+    if root_names != {"Law": len(selected_entries)}:
+        failure_reasons.append("One or more selected XML roots were not Law, or parsing failed")
+    if articles_missing_num:
+        failure_reasons.append(f"Article elements missing Num: {articles_missing_num}")
+    if parse_errors:
+        failure_reasons.append(f"XML parse errors: {len(parse_errors)}")
+    result["validation_passed_this_run"] = not failure_reasons
+    result["validation_failure_reasons"] = failure_reasons
+
     output_text = json.dumps(result, ensure_ascii=False, indent=2)
     print(output_text)
     if args.output:
         with open(args.output, "w", encoding="utf-8") as stream:
             stream.write(output_text + "\n")
-    return 0 if not parse_errors and not missing_paths and not extra_paths and not malformed_url_rows else 1
+    return 0 if not failure_reasons else 1
 
 
 if __name__ == "__main__":
