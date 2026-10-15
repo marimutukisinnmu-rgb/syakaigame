@@ -6,7 +6,7 @@
 
 調査レポートは専用の `docs` ブランチにあります。
 
-- [日本法令データ全件確認・経済社会ゲーム向け制度設計メモ（docsブランチ）](https://github.com/marimutukisinnmu-rgb/syakaigame/blob/docs/docs/japan-law-data-review.md)
+- [日本法令データ全件確認・経済社会ゲーム向け制度設計メモ（docsブランチ）](https://github.com/marimutukisinnmu-rgb/syakaigame/blob/docs/japan-law-data-review.md)
 
 この資料では、提供された `all_xml.zip` の構造・件数・機械的検査結果、法令データの出典と利用条件への注意、経済社会ゲームに関係する法令分野、検索基盤とゲームルールの設計案をまとめています。
 
