@@ -14,7 +14,10 @@
 
 まずは単一HTMLで遊べる試作版を追加しました。
 
-- **[Demoを開く（GitHub Pages）](https://marimutukisinnmu-rgb.github.io/syakaigame/)** — GitHub Pagesが有効化されている場合の公開URLです。まだ公開されていない場合は、下のHTMLを保存して直接開いてください。
+- **[Demoを開く（GitHub Pages）](https://marimutukisinnmu-rgb.github.io/syakaigame/)** — GitHub Pagesの初回設定とデプロイが完了すると使える公開URLです。
+- [自動公開ワークフロー](https://github.com/marimutukisinnmu-rgb/syakaigame/blob/main/.github/workflows/deploy-pages.yml)
+
+**初回公開の設定：** リポジトリの `Settings` → `Pages` → `Build and deployment` → `Source` で `GitHub Actions` を選択してください。Pagesが未設定だと最初のデプロイは失敗します。設定後、`Actions` タブから `Publish Demo to GitHub Pages` を再実行できます。
 - [index.html のソースを見る](https://github.com/marimutukisinnmu-rgb/syakaigame/blob/main/index.html)
 
 ### できること
