@@ -41,7 +41,7 @@
 
 ### GitHub Pages
 
-`main` の `index.html` が更新されると、[Pages公開ワークフロー](https://github.com/marimutukisinnmu-rgb/syakaigame/blob/main/.github/workflows/deploy-pages.yml)が実行される設定です。公開URLが表示されない場合は、リポジトリの `Settings → Pages` で `GitHub Actions` がソースとして選ばれていることと、Actionsのデプロイ結果を確認してください。
+`main` の `index.html` が更新されると、[Pages公開ワークフロー](https://github.com/marimutukisinnmu-rgb/syakaigame/blob/main/.github/workflows/deploy-pages.yml)が実行される設定です。初回デプロイが `Get Pages site failed` または `Create Pages site failed` で失敗した場合、リポジトリの `Settings → Pages → Build and deployment → Source` で `GitHub Actions` を選択してください。その後、`Actions → Publish Demo to GitHub Pages → Run workflow` でワークフローを実行し直します。GitHub Pagesの初回有効化はリポジトリ設定が必要なため、この連携だけでは自動設定できていません。公開状態はワークフローが成功し、公開URLが開けることを確認してください。
 
 ## 法令データの調査資料
 
