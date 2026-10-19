@@ -455,7 +455,7 @@ hr.sep{border:0;border-top:1px solid #2c3950;margin:18px 0}
     state.materials[id]+=qty;
     state.materialAverageCost[id]=Math.round((oldQty*oldCost+qty*price)/(oldQty+qty));
     state.cash-=cost;
-    log(item.name+"を"+qty+item.unit+"仕入れ",- "buy",-cost);
+    log(item.name+"を"+qty+item.unit+"仕入れ","buy",-cost);
     addNews(item.name+"を"+qty+item.unit+"仕入れた。支出 "+money(cost)+"。");
     toast(item.name+"を"+qty+item.unit+"仕入れた！");
     render();
