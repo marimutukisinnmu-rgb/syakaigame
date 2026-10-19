@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#111827">
 <meta name="description" content="商品を作って売り、会社を育てる経済社会シミュレーションのデモ版。外部ライブラリ不要、セーブデータはブラウザー内に保存。">
-<title>経済圏シミュレーター DEMO 0.1</title>
+<title>経済圏シミュレーター DEMO 0.2</title>
 <style>
 :root{color-scheme:dark;--bg:#0b1020;--panel:#141c2e;--panel2:#1a253a;--line:#2b3850;--text:#eef3ff;--muted:#91a0ba;--mint:#6ee7c2;--blue:#84adff;--gold:#ffce74;--red:#ff858d;--radius:18px;--shadow:0 12px 36px rgba(0,0,0,.18)}
 *{box-sizing:border-box}
@@ -157,6 +157,7 @@ hr.sep{border:0;border-top:1px solid #2c3950;margin:18px 0}
 .inline{display:inline-flex;align-items:center;gap:6px}
 .actions-line{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:22px 0 12px}
+.target-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.target-card{border:1px solid #304058;background:#111a2b;border-radius:15px;padding:15px;display:flex;flex-direction:column;gap:10px;min-width:0}.target-top{display:flex;align-items:center;gap:10px}.target-icon{display:grid;place-items:center;width:42px;height:42px;background:#25334a;border-radius:12px;font-size:22px;flex:0 0 auto}.target-card p{font-size:11px;color:var(--muted);margin:0}.target-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:auto}.target-card .btn{width:100%}.history-note{font-size:12px;color:var(--muted);padding:10px 0;border-bottom:1px solid #29364c}.history-note:last-child{border-bottom:0}@media(max-width:680px){.target-grid{grid-template-columns:1fr}}
 @media(max-width:1050px){.app{grid-template-columns:205px minmax(0,1fr)}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-main{grid-template-columns:1fr}.sidebar{padding-inline:12px}.main{padding-inline:20px}}
 @media(max-width:680px){.app{display:block}.sidebar{padding:12px;border-right:0;border-bottom:1px solid var(--line);gap:12px}.brand{padding:2px 6px}.brand-mark{width:36px;height:36px}.side-label,.side-bottom{display:none}.nav{display:flex;overflow-x:auto;gap:6px;padding:0 2px 3px}.nav button{white-space:nowrap;flex:0 0 auto;width:auto;padding:9px 11px;font-size:12px}.nav-icon{font-size:16px;width:auto}.main{padding:17px 13px 28px}.topbar{margin-bottom:18px}.page-head{align-items:flex-start}.page-head .day-chip{padding:8px 10px}.day-chip strong{font-size:14px}.lead{font-size:12px}.kpis{gap:8px;margin:17px 0}.kpi{padding:13px;border-radius:14px}.kpi-value{font-size:21px}.panel{padding:15px;border-radius:15px}.material-grid,.recipe-grid{grid-template-columns:1fr}.quick-actions{gap:8px}.quick-action{padding:11px}.top-actions .pill{display:none}.chart{gap:5px}.chart-label{font-size:9px}.footer{display:block}.footer span{display:block;margin-top:7px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
@@ -176,6 +177,7 @@ hr.sep{border:0;border-top:1px solid #2c3950;margin:18px 0}
         <button data-tab="market"><span class="nav-icon">↗</span>市場・仕入れ</button>
         <button data-tab="factory"><span class="nav-icon">⚙</span>工場・生産</button>
         <button data-tab="company"><span class="nav-icon">▦</span>会社・資金</button>
+        <button data-tab="strategy"><span class="nav-icon">⇄</span>企業再編・倒産</button>
         <button data-tab="reports"><span class="nav-icon">▤</span>帳簿・レポート</button>
       </nav>
     </div>
@@ -185,7 +187,7 @@ hr.sep{border:0;border-top:1px solid #2c3950;margin:18px 0}
         <div class="status-number" id="save-status">自動保存</div>
         <div class="mini-note">このブラウザー内に保存</div>
       </div>
-      <div class="mini-note" style="padding:0 7px">DEMO 0.1<br>オフライン対応 · 外部ライブラリなし</div>
+      <div class="mini-note" style="padding:0 7px">DEMO 0.2<br>オフライン対応 · 外部ライブラリなし</div>
     </div>
   </aside>
   <main class="main">
@@ -193,7 +195,7 @@ hr.sep{border:0;border-top:1px solid #2c3950;margin:18px 0}
       <div class="breadcrumb">SYAKAI GAME <span aria-hidden="true"> / </span><span id="breadcrumb">経営ダッシュボード</span></div>
       <div class="top-actions">
         <span class="pill"><span class="dot"></span> LOCAL SAVE</span>
-        <span class="pill">DEMO 0.1</span>
+        <span class="pill">DEMO 0.2</span>
         <button class="btn btn-ghost" data-action="reset">↻ 最初から</button>
       </div>
     </div>
@@ -211,9 +213,9 @@ hr.sep{border:0;border-top:1px solid #2c3950;margin:18px 0}
       <article class="kpi"><div class="kpi-top"><span>商品在庫</span><span class="kpi-icon">▦</span></div><div class="kpi-value" id="kpi-stock">—</div><div class="kpi-bottom" id="kpi-stock-sub">販売できる完成品</div></article>
       <article class="kpi"><div class="kpi-top"><span>評判</span><span class="kpi-icon">✦</span></div><div class="kpi-value" id="kpi-rep">—</div><div class="kpi-bottom" id="kpi-staff">小さな店からスタート</div></article>
     </section>
-    <div class="notice"><span>⚠</span><div><strong>デモの世界での約束：</strong>通貨は架空の「ミライ円」です。現実のお金・商品・金券との交換、現実の仕事の依頼や報酬は禁止。雇用は架空のNPCのみ。これは法令エンジンではなく、ゲーム独自のルールを試す試作版です。</div></div>
+    <div class="notice"><span>⚠</span><div><strong>デモの世界での約束：</strong>通貨は架空の「ミライ円」です。現実のお金・商品・金券との交換、現実の仕事の依頼や報酬は禁止。雇用は架空のNPCのみ。法人化・買収・倒産もゲーム独自の簡易ルールで、現実の法令を自動適用するものではありません。</div></div>
     <div id="page" aria-live="polite"></div>
-    <footer class="footer"><span>SYAKAI GAME · DEMO 0.1 — シミュレーション上の取引です。現実の金銭価値はありません。</span><span><a href="https://github.com/marimutukisinnmu-rgb/syakaigame" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a> · 保存データはこのブラウザー内のみ</span></footer>
+    <footer class="footer"><span>SYAKAI GAME · DEMO 0.2 — シミュレーション上の取引です。現実の金銭価値はありません。</span><span><a href="https://github.com/marimutukisinnmu-rgb/syakaigame" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a> · 保存データはこのブラウザー内のみ</span></footer>
   </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -233,12 +235,18 @@ hr.sep{border:0;border-top:1px solid #2c3950;margin:18px 0}
     {id:"desk",name:"ワークデスク",icon:"🗄️",base:4800,demand:2,recipe:{wood:4,iron:1},process:200,description:"高単価だが素材が多い"},
     {id:"lamp",name:"スマートランプ",icon:"💡",base:2600,demand:7,recipe:{iron:1,parts:2},process:100,description:"部品を組み合わせた商品"}
   ];
-  const TAB_NAMES = {dashboard:"経営ダッシュボード",market:"市場・仕入れ",factory:"工場・生産",company:"会社・資金",reports:"帳簿・レポート"};
+  const ACQUISITION_TARGETS = [
+    {id:"bakery",name:"こむぎベーカリー",icon:"🥐",cost:85000,description:"パンの販売網を取得。パンの需要が35%増える。",boosts:{bread:0.35}},
+    {id:"furniture",name:"まちの家具工房",icon:"🪚",cost:105000,description:"家具の工房を取得。チェアの需要30%、デスクの需要25%増。",boosts:{chair:0.30,desk:0.25}},
+    {id:"tech",name:"ライトテック",icon:"💡",cost:95000,description:"照明ブランドを取得。スマートランプの需要が35%増える。",boosts:{lamp:0.35}}
+  ];
+  const TAB_NAMES = {dashboard:"経営ダッシュボード",market:"市場・仕入れ",factory:"工場・生産",company:"会社・資金",strategy:"企業再編・倒産",reports:"帳簿・レポート"};
   const PAGE_META = {
     dashboard:{title:"会社を育てよう。",lead:"仕入れて、作って、価格を決めて、売る。毎日の選択が経営を変えていく。"},
     market:{title:"市場を読み、仕入れる。",lead:"素材価格は日ごとに変わる。在庫と資金を見ながら、次の生産を考えよう。"},
     factory:{title:"作るほど、経済が動く。",lead:"素材を消費して商品を製造。1日に作れる数量には生産能力の上限がある。"},
     company:{title:"会社の未来に投資する。",lead:"法人化、広告、NPC雇用、銀行ローン。どの投資にもコストとリスクがある。"},
+    strategy:{title:"会社を広げるか、立て直すか。",lead:"架空の企業買収で事業を拡張し、資金繰りが破綻したときはゲーム内ルールで清算・再起する。"},
     reports:{title:"数字を見れば、次がわかる。",lead:"毎日の販売・費用・利益と取引履歴を確認しよう。すべてデモ用の帳簿だ。"}
   };
   function initialState(){
@@ -254,6 +262,7 @@ hr.sep{border:0;border-top:1px solid #2c3950;margin:18px 0}
       employees:0,popularity:18,marketingDays:0,materials:materials,materialPrices:materialPrices,
       materialAverageCost:materialAverageCost,products:products,prices:prices,loan:null,
       totalRevenue:0,totalSold:0,totalProduced:0,totalOperatingCost:0,history:[],ledger:[],
+      acquiredBusinesses:[],bankruptcyCount:0,bankruptcies:[],
       news:[{day:1,text:"商店街に新しい店がオープン。あなたの経営が始まった！"}],dailyProduced:0
     };
   }
@@ -315,6 +324,12 @@ hr.sep{border:0;border-top:1px solid #2c3950;margin:18px 0}
     return sum;
   }
   function productionCapacity(){return 8+state.employees*8;}
+  function acquisitionDemandMultiplier(productId){
+    return (state.acquiredBusinesses||[]).reduce(function(factor,id){
+      const target=ACQUISITION_TARGETS.find(function(item){return item.id===id;});
+      return factor*(target&&target.boosts[productId]?1+target.boosts[productId]:1);
+    },1);
+  }
   function recipeText(p){
     return Object.keys(p.recipe).map(function(k){return ITEMS[k].name+" ×"+p.recipe[k];}).join(" / ");
   }
@@ -413,13 +428,54 @@ hr.sep{border:0;border-top:1px solid #2c3950;margin:18px 0}
       '<hr class="sep"><div class="meter-row"><span>現金余力</span><div class="meter"><span style="width:'+clamp(state.cash/300000*100,0,100)+'%"></span></div><strong>'+Math.round(clamp(state.cash/300000*100,0,100))+'%</strong></div><div class="meter-row"><span>評判</span><div class="meter"><span style="width:'+state.popularity+'%"></span></div><strong>'+state.popularity+'%</strong></div><div class="meter-row"><span>生産力</span><div class="meter"><span style="width:'+clamp(productionCapacity()/32*100,0,100)+'%"></span></div><strong>'+productionCapacity()+'</strong></div></section>'+
       '<section class="panel"><div class="panel-head"><div><h2>運営・安全ルール</h2><p>このデモの大前提</p></div></div><div class="rule-list"><div class="rule"><span class="rule-num">✓</span><div><b>架空通貨のみ</b>現実のお金・商品・金券との交換は禁止。</div></div><div class="rule"><span class="rule-num">✓</span><div><b>現実の仕事を依頼しない</b>ゲーム内雇用は架空のNPCに限定。</div></div><div class="rule"><span class="rule-num">✓</span><div><b>個人情報は登録しない</b>このデモにログイン・実名登録機能はありません。</div></div></div></section></div></div>';
   }
+  function renderStrategy(){
+    const owned=state.acquiredBusinesses||[];
+    const canBankrupt=state.cash<0||(state.loan&&state.loan.overdue&&state.cash<state.loan.balance);
+    const cards=ACQUISITION_TARGETS.map(function(target){
+      const has=owned.indexOf(target.id)!==-1;
+      const boosts=Object.keys(target.boosts).map(function(pid){
+        const p=PRODUCTS.find(function(item){return item.id===pid;});
+        return (p?p.name:pid)+" +"+Math.round(target.boosts[pid]*100)+"%";
+      }).join(" / ");
+      let label=has?"取得済み":!state.incorporated?"法人化が必要":state.cash<target.cost?"資金不足":"買収する · "+money(target.cost);
+      return '<article class="target-card"><div class="target-top"><div class="target-icon">'+target.icon+'</div><div><h3>'+escapeHtml(target.name)+'</h3><div class="small">取得価格 '+money(target.cost)+'</div></div></div><p>'+escapeHtml(target.description)+'</p><div class="small">需要効果：'+escapeHtml(boosts)+'</div><div class="small">取得後の管理費：1日 '+money(700)+'</div><div class="target-foot"><button class="btn '+(!has&&state.incorporated&&state.cash>=target.cost?"btn-primary":"")+'" data-action="acquire" data-id="'+target.id+'" '+(has||!state.incorporated||state.cash<target.cost?'disabled':'')+'>'+label+'</button></div></article>';
+    }).join("");
+    const ownedNames=owned.map(function(id){const target=ACQUISITION_TARGETS.find(function(item){return item.id===id;});return target?target.name:id;});
+    const acquiredList=ownedNames.length?'<div class="list">'+ownedNames.map(function(name){return '<div class="list-row"><div class="list-emoji">🏢</div><div class="list-copy"><strong>'+escapeHtml(name)+'</strong><small>企業グループの構成事業</small></div><div class="list-value positive">運営中</div></div>';}).join("")+'</div>':'<div class="empty"><div class="big">🏭</div>まだ買収した事業はありません。<br>法人化して、資金を用意すると買収できます。</div>';
+    const bankruptcyHistory=(state.bankruptcies||[]).slice().reverse();
+    const historyHtml=bankruptcyHistory.length?'<hr class="sep"><h3>過去の倒産・再起記録</h3>'+bankruptcyHistory.map(function(item){return '<div class="history-note">DAY '+number(item.day)+' · '+escapeHtml(item.company)+'<br>清算対象資産 '+money(item.liquidationValue)+' · 借入残高 '+money(item.loanDebt)+' · 再起資金 '+money(item.restartCapital)+'</div>';}).join(""):'';
+    const bankruptButton=canBankrupt
+      ?'<button class="btn btn-danger" style="width:100%" data-action="bankruptcy">倒産手続を開始して再起する</button>'
+      :'<button class="btn btn-danger" style="width:100%" disabled>倒産条件を満たしていません</button>';
+    const bankruptcyStatus=state.cash<0
+      ?"現金残高がマイナスのため、ゲーム内倒産処理を選べます。"
+      :state.loan&&state.loan.overdue&&state.cash<state.loan.balance
+        ?"ローンが期限超過し、返済資金も不足しているため、ゲーム内倒産処理を選べます。"
+        :"利用条件：現金残高がマイナス、または返済期限を過ぎたローンを支払えないこと。";
+    return '<div class="grid-main"><div class="stack">'+
+      '<section class="panel"><div class="panel-head"><div><h2>企業買収・企業グループ</h2><p>ゲーム内のNPC事業を取得し、需要や事業範囲を拡大する。</p></div><span class="tag">M&A SIM</span></div>'+
+      (!state.incorporated?'<div class="notice"><span>🏢</span><div><strong>最初に法人化しよう。</strong><br>このデモの独自ルールでは、企業買収にはゲーム内で株式会社を設立している必要があります。</div></div>':'<div class="notice mint"><span>⇄</span><div><strong>買収済み事業：'+owned.length+'件</strong><br>取得した事業は対象製品の需要を高めます。ただし管理費が毎日発生します。</div></div>')+
+      '<div class="target-grid">'+cards+'</div><hr class="sep"><h3>現在の企業グループ</h3>'+acquiredList+
+      '<p class="small" style="margin-top:13px">買収はNPC事業だけを対象にしたゲーム内取引です。実在企業への投資や、現実の会社の取得・合併ではありません。</p></section>'+
+      '<section class="panel"><div class="panel-head"><div><h2>競争政策の考え方</h2><p>価格が同じというだけで違反とは判断しない。</p></div><span class="tag">COMPETITION</span></div><div class="rule-list"><div class="rule"><span class="rule-num">1</span><div><b>合意・行為・状況を区別</b>価格の一致だけではカルテルとは判定しません。</div></div><div class="rule"><span class="rule-num">2</span><div><b>調査と判断を別にする</b>ゲーム内の疑い、証拠、確認、処分を別々に設計します。</div></div><div class="rule"><span class="rule-num">3</span><div><b>このDemoでは自動摘発しない</b>複数プレイヤー間の合意検知は未実装なので、価格だけで処分する機能はありません。</div></div></div></section>'+
+      '</div><div class="stack">'+
+      '<section class="panel"><div class="panel-head"><div><h2>倒産・清算・再起</h2><p>資金繰りが破綻したときのゲーム独自ルール。</p></div><span class="tag">RESTART</span></div>'+
+      '<div class="list-row"><div class="list-emoji">💸</div><div class="list-copy"><strong>現在の現金</strong><small>倒産の利用条件を確認</small></div><div class="list-value '+(state.cash<0?"negative":"")+'>'+money(state.cash)+'</div></div>'+
+      '<div class="list-row"><div class="list-emoji">🏦</div><div class="list-copy"><strong>ローン残高</strong><small>'+(state.loan?(state.loan.overdue?"返済期限超過":"返済期限 DAY "+number(state.loan.dueDay)):"借入なし")+'</small></div><div class="list-value">'+money(state.loan?state.loan.balance:0)+'</div></div>'+
+      '<div class="list-row"><div class="list-emoji">📦</div><div class="list-copy"><strong>棚卸資産の清算見積り</strong><small>原材料・完成品をゲーム内評価額で換算</small></div><div class="list-value">'+money(Object.keys(state.materials).reduce(function(sum,k){return sum+state.materials[k]*state.materialAverageCost[k]*0.4;},0)+PRODUCTS.reduce(function(sum,p){return sum+state.products[p.id].qty*state.products[p.id].unitCost*0.45;},0))+'</div></div>'+
+      '<p class="small">'+escapeHtml(bankruptcyStatus)+'</p>'+bankruptButton+
+      '<div class="notice" style="margin-bottom:0"><span>⚠</span><div><strong>重要：</strong>再起時は借入をゲーム上で消去し、在庫・買収事業・従業員・法人状態をリセットして架空の再起資金 '+money(60000)+' を付与します。これはゲーム独自の救済ルールで、現実の倒産手続や借金の扱いを示すものではありません。</div></div>'+
+      historyHtml+'</section>'+
+      '<section class="panel"><div class="panel-head"><div><h2>運営ログ</h2><p>倒産処理を含む取引記録。</p></div></div>'+renderLedger(12)+'</section>'+
+      '</div></div>';
+  }
   function renderLedger(limit){
     const rows=state.ledger.slice(0,limit||30);
     if(!rows.length)return '<div class="empty"><div class="big">🧾</div>取引履歴はまだありません。<br>市場で仕入れたり、商品を作ったりしてみよう。</div>';
     return '<div class="table-wrap"><table><thead><tr><th>日付</th><th>内容</th><th>分類</th><th class="right">金額</th></tr></thead><tbody>'+rows.map(function(x){
       const amount=x.amount===null?"—":money(x.amount);
       const sign=x.amount===null?"":x.amount<0?"negative":"positive";
-      const typeName={buy:"仕入れ",produce:"製造",sale:"販売",cost:"運営費",loan:"融資",repay:"返済",company:"会社",marketing:"広告",hire:"雇用",market:"市場",info:"情報"}[x.type]||"取引";
+      const typeName={buy:"仕入れ",produce:"製造",sale:"販売",cost:"運営費",loan:"融資",repay:"返済",company:"会社",marketing:"広告",hire:"雇用",market:"市場",info:"情報",acquisition:"買収",bankruptcy:"倒産"}[x.type]||"取引";
       return '<tr><td>DAY '+String(x.day).padStart(2,"0")+'</td><td>'+escapeHtml(x.text)+'</td><td><span class="tag">'+typeName+'</span></td><td class="right '+sign+'">'+amount+'</td></tr>';
     }).join("")+'</tbody></table></div>';
   }
@@ -444,6 +500,7 @@ hr.sep{border:0;border-top:1px solid #2c3950;margin:18px 0}
     else if(activeTab==="market")page.innerHTML=renderMarket();
     else if(activeTab==="factory")page.innerHTML=renderFactory();
     else if(activeTab==="company")page.innerHTML=renderCompany();
+    else if(activeTab==="strategy")page.innerHTML=renderStrategy();
     else page.innerHTML=renderReports();
     saveState();
   }
@@ -518,6 +575,52 @@ hr.sep{border:0;border-top:1px solid #2c3950;margin:18px 0}
     addNews("ローンを完済。資金繰りが少し身軽になった。");
     toast("ローンを完済した！");render();
   }
+  function acquireBusiness(id){
+    const target=ACQUISITION_TARGETS.find(function(item){return item.id===id;});
+    if(!target){toast("対象事業が見つかりません。");return;}
+    if(!state.incorporated){toast("企業買収の前に法人化してください。");return;}
+    if((state.acquiredBusinesses||[]).indexOf(id)!==-1){toast("この事業はすでに取得しています。");return;}
+    if(state.cash<target.cost){toast("買収資金が不足しています。");return;}
+    state.cash-=target.cost;
+    if(!Array.isArray(state.acquiredBusinesses))state.acquiredBusinesses=[];
+    state.acquiredBusinesses.push(id);
+    state.popularity=clamp(state.popularity+2,0,100);
+    log(target.name+"をゲーム内で買収","acquisition",-target.cost);
+    addNews(target.name+"を取得。対象商品の需要が上がる一方、1日 "+money(700)+" の管理費が発生する。");
+    toast(target.name+"を企業グループに加えた！");
+    render();
+  }
+  function declareBankruptcy(){
+    const canBankrupt=state.cash<0||(state.loan&&state.loan.overdue&&state.cash<state.loan.balance);
+    if(!canBankrupt){toast("現時点ではゲーム内倒産の利用条件を満たしていません。");return;}
+    if(!window.confirm("ゲーム内の倒産・清算処理を開始しますか？在庫、従業員、買収事業、法人状態は失われ、新会社に再起します。現実の倒産手続ではありません。"))return;
+    const previous=state;
+    const liquidationValue=Math.floor(
+      Object.keys(previous.materials).reduce(function(sum,k){return sum+previous.materials[k]*previous.materialAverageCost[k]*0.4;},0)+
+      PRODUCTS.reduce(function(sum,p){return sum+previous.products[p.id].qty*previous.products[p.id].unitCost*0.45;},0)
+    );
+    const loanDebt=previous.loan?previous.loan.balance:0;
+    const record={day:previous.day,company:previous.companyName,loanDebt:loanDebt,liquidationValue:liquidationValue,restartCapital:60000};
+    const fresh=initialState();
+    fresh.day=previous.day;
+    fresh.cash=60000;
+    fresh.companyName=(previous.companyName+" 再起").slice(0,32);
+    fresh.bankruptcyCount=(previous.bankruptcyCount||0)+1;
+    fresh.bankruptcies=(previous.bankruptcies||[]).concat([record]).slice(-10);
+    fresh.history=previous.history||[];
+    fresh.ledger=previous.ledger||[];
+    fresh.news=previous.news||[];
+    fresh.totalRevenue=previous.totalRevenue||0;
+    fresh.totalSold=previous.totalSold||0;
+    fresh.totalProduced=previous.totalProduced||0;
+    fresh.totalOperatingCost=previous.totalOperatingCost||0;
+    state=fresh;
+    log("ゲーム内倒産処理・清算。借入 "+money(loanDebt)+" をゲームルール上リセット","bankruptcy",null);
+    addNews(previous.companyName+"をゲーム内清算し、"+state.companyName+"として再起。再起資金 "+money(state.cash)+"。残債リセットはDemo独自ルール。");
+    activeTab="strategy";
+    render();
+    toast("清算完了。新会社で再起した！");
+  }
   function setCompanyName(){
     const input=$("#company-name-input");
     if(!input)return;
@@ -540,7 +643,7 @@ hr.sep{border:0;border-top:1px solid #2c3950;margin:18px 0}
       const staffFactor=1+state.employees*0.07;
       const reputationFactor=0.72+state.popularity/125;
       const marketFactor=0.9+Math.random()*0.2;
-      const demand=Math.max(0,Math.floor(p.demand*priceFactor*randomness*adFactor*staffFactor*reputationFactor*marketFactor));
+      const demand=Math.max(0,Math.floor(p.demand*priceFactor*randomness*adFactor*staffFactor*reputationFactor*marketFactor*acquisitionDemandMultiplier(p.id)));
       const sold=Math.min(stock.qty,demand);
       if(sold>0){
         const proceeds=sold*price,goodsCost=sold*stock.unitCost;
@@ -548,7 +651,7 @@ hr.sep{border:0;border-top:1px solid #2c3950;margin:18px 0}
         salesText.push(p.name+" "+sold+"個");
       }
     });
-    const operating=1200+state.employees*2200;
+    const operating=1200+state.employees*2200+(state.acquiredBusinesses||[]).length*700;
     state.cash+=revenue-operating;
     const profit=revenue-cogs-operating;
     state.totalRevenue+=revenue;state.totalSold+=soldTotal;state.totalOperatingCost+=operating;
@@ -610,6 +713,8 @@ hr.sep{border:0;border-top:1px solid #2c3950;margin:18px 0}
     else if(action==="hire")hire();
     else if(action==="loan")takeLoan();
     else if(action==="repay")repayLoan();
+    else if(action==="acquire")acquireBusiness(button.dataset.id);
+    else if(action==="bankruptcy")declareBankruptcy();
     else if(action==="save-name")setCompanyName();
     else if(action==="reset")resetGame();
   });
