@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111827">
+<meta name="description" content="商品を作って売り、会社を育てる経済社会シミュレーションのデモ版。外部ライブラリ不要、セーブデータはブラウザー内に保存。">
+<title>経済圏シミュレーター DEMO 0.1</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#141c2e;--panel2:#1a253a;--line:#2b3850;--text:#eef3ff;--muted:#91a0ba;--mint:#6ee7c2;--blue:#84adff;--gold:#ffce74;--red:#ff858d;--radius:18px;--shadow:0 12px 36px rgba(0,0,0,.18)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(ellipse at 12% 0%,#18284b 0%,transparent 33%),var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI","Noto Sans JP",sans-serif;min-height:100vh}
+button,input,select{font:inherit}
+button{cursor:pointer;transition:transform .14s ease,border-color .14s ease,background .14s ease}
+button:active{transform:translateY(1px)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+.app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+.sidebar{border-right:1px solid var(--line);background:rgba(9,14,27,.84);padding:25px 16px;display:flex;flex-direction:column;gap:24px}
+.brand{display:flex;gap:12px;align-items:center;padding:0 8px}
+.brand-mark{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#70efc3,#8aaaff);display:grid;place-items:center;color:#102036;font-size:24px;font-weight:900;box-shadow:0 8px 28px #65dfb32b}
+.brand-title{font-weight:850;font-size:15px;line-height:1.3;letter-spacing:.01em}
+.brand-sub{font-size:10px;color:var(--muted);letter-spacing:.19em;margin-top:4px}
+.side-label{font-size:10px;font-weight:800;letter-spacing:.18em;color:#7585a4;padding:0 12px;margin-bottom:5px}
+.nav{display:grid;gap:7px}
+.nav button{border:1px solid transparent;background:transparent;color:#aebbd2;text-align:left;width:100%;padding:12px 13px;border-radius:12px;display:flex;align-items:center;gap:12px}
+.nav button:hover{background:#19243a;color:white}
+.nav button.active{background:linear-gradient(100deg,#223c4a,#202f50);border-color:#3f6b72;color:#e9fff8}
+.nav-icon{font-size:19px;width:23px;text-align:center}
+.side-bottom{margin-top:auto;display:grid;gap:12px}
+.status-box{border:1px solid var(--line);background:#10182a;border-radius:14px;padding:13px}
+.status-title{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px}
+.dot{width:7px;height:7px;background:var(--mint);border-radius:50%;box-shadow:0 0 12px #6ee7c277}
+.status-number{font-size:21px;font-weight:800;margin-top:4px}
+.mini-note{font-size:11px;color:var(--muted)}
+.main{min-width:0;padding:24px clamp(16px,3vw,38px) 36px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:26px}
+.breadcrumb{font-size:12px;color:var(--muted)}
+.top-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+.pill{display:inline-flex;align-items:center;gap:7px;background:#18233a;border:1px solid #30415f;border-radius:999px;padding:7px 11px;color:#c4d2ec;font-size:11px;font-weight:750;letter-spacing:.06em}
+.btn{border:1px solid var(--line);border-radius:11px;padding:10px 14px;background:#202d45;color:#f0f5ff;font-weight:750;font-size:13px}
+.btn:hover{background:#2a3b59;border-color:#516889}
+.btn-primary{background:var(--mint);border-color:var(--mint);color:#10251f}
+.btn-primary:hover{background:#91f6d8}
+.btn-ghost{background:transparent;color:var(--muted)}
+.btn-danger{background:#3a202e;border-color:#673544;color:#ffc4cb}
+.btn:disabled{opacity:.42;cursor:not-allowed;transform:none}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin-bottom:19px}
+.eyebrow{color:var(--mint);font-size:11px;font-weight:850;letter-spacing:.2em;text-transform:uppercase}
+h1{font-size:clamp(27px,3vw,38px);line-height:1.17;letter-spacing:-.045em;margin:7px 0 9px}
+h2{font-size:17px;margin:0;font-weight:800;letter-spacing:-.02em}
+h3{font-size:14px;margin:0;font-weight:800}
+.lead{max-width:760px;color:var(--muted);margin:0;font-size:13px}
+.day-chip{flex:0 0 auto;border:1px solid #3e5672;background:#17253b;border-radius:14px;padding:10px 14px;text-align:right}
+.day-chip .label{font-size:10px;color:var(--muted)}
+.day-chip strong{display:block;font-size:18px;white-space:nowrap}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:23px 0}
+.kpi{background:linear-gradient(145deg,#172239,#121a2c);border:1px solid var(--line);border-radius:var(--radius);padding:17px 18px;min-width:0;box-shadow:var(--shadow)}
+.kpi-top{display:flex;justify-content:space-between;gap:8px;align-items:center;color:var(--muted);font-size:11px;font-weight:700}
+.kpi-icon{font-size:17px}
+.kpi-value{font-size:clamp(20px,2vw,27px);font-weight:850;letter-spacing:-.04em;margin:9px 0 3px;overflow-wrap:anywhere}
+.kpi-bottom{font-size:11px;color:#7e90b1}
+.positive{color:var(--mint)!important}.negative{color:var(--red)!important}.gold{color:var(--gold)!important}
+.grid-main{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);gap:16px;align-items:start}
+.stack{display:grid;gap:16px;min-width:0}
+.panel{background:linear-gradient(155deg,rgba(24,34,54,.98),rgba(17,25,42,.98));border:1px solid var(--line);border-radius:var(--radius);padding:20px;min-width:0;box-shadow:var(--shadow)}
+.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:17px}
+.panel-head p{margin:5px 0 0;color:var(--muted);font-size:12px}
+.tag{font-size:10px;letter-spacing:.05em;font-weight:800;color:#a5b7d5;background:#202c43;border:1px solid #344560;padding:5px 8px;border-radius:7px;white-space:nowrap}
+.chart{height:172px;display:flex;align-items:stretch;gap:10px;padding-top:12px;border-bottom:1px solid #334059;background:repeating-linear-gradient(to bottom,transparent 0,transparent 41px,#29364c 42px)}
+.chart-col{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:7px}
+.bar-area{height:130px;width:100%;display:flex;align-items:flex-end;justify-content:center}
+.bar{width:min(29px,72%);min-height:4px;border-radius:7px 7px 2px 2px;background:linear-gradient(180deg,#75eac1,#4a9aaf);box-shadow:0 0 15px #65e3bf16;transition:height .25s ease}
+.bar.negative-bar{background:linear-gradient(180deg,#ff9d9d,#bd586b)}
+.chart-label{font-size:10px;color:#8494b2;white-space:nowrap}
+.chart-empty{height:150px;display:grid;place-items:center;color:var(--muted);font-size:12px;text-align:center}
+.legend{display:flex;gap:14px;align-items:center;margin-top:12px;color:var(--muted);font-size:11px}
+.legend-dot{display:inline-block;width:8px;height:8px;border-radius:3px;background:var(--mint);margin-right:5px}
+.legend-dot.gold-dot{background:var(--gold)}
+.quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.quick-action{border:1px solid #30405a;background:#19253a;border-radius:13px;padding:13px;min-width:0;text-align:left}
+.quick-action:hover{border-color:#5da995;background:#1b3040}
+.quick-action .qa-icon{font-size:20px}
+.quick-action strong{display:block;margin-top:8px;font-size:13px}
+.quick-action span{font-size:11px;color:var(--muted);display:block;margin-top:3px}
+.notice{border:1px solid #534931;background:linear-gradient(110deg,#282619,#211f1c);border-radius:14px;padding:13px 15px;display:flex;align-items:flex-start;gap:10px;color:#e2d5b3;font-size:12px;margin:18px 0}
+.notice strong{color:#ffdf93}
+.notice.mint{border-color:#28564c;background:linear-gradient(110deg,#142a2b,#192536);color:#b8d8d3}
+.list{display:grid;gap:0}
+.list-row{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #29364c}
+.list-row:last-child{border-bottom:0;padding-bottom:0}
+.list-row:first-child{padding-top:0}
+.list-emoji{width:34px;height:34px;display:grid;place-items:center;background:#222f47;border-radius:10px;flex:0 0 auto;font-size:17px}
+.list-copy{flex:1;min-width:0}
+.list-copy strong{display:block;font-size:12px}
+.list-copy small{color:var(--muted);font-size:11px}
+.list-value{text-align:right;white-space:nowrap;font-size:12px;font-weight:800}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap}
+th{text-align:left;color:#8394b4;font-size:10px;font-weight:800;letter-spacing:.04em;padding:9px 10px;border-bottom:1px solid #344158}
+td{padding:12px 10px;border-bottom:1px solid #26334a}
+tr:last-child td{border-bottom:0}
+td.right,th.right{text-align:right}
+.product-name{display:flex;align-items:center;gap:8px;font-weight:750}
+.product-emoji{width:30px;height:30px;border-radius:9px;background:#202d43;display:grid;place-items:center;font-size:17px;flex:0 0 auto}
+.input{background:#0f1728;border:1px solid #394a65;border-radius:9px;padding:9px 10px;color:var(--text);width:100%;min-width:0}
+.input.small-input{width:100px;text-align:right}
+.input:disabled{opacity:.5}
+.field{display:grid;gap:6px;min-width:0}
+.field label{font-size:11px;color:#aab8d1;font-weight:750}
+.field-help{font-size:11px;color:var(--muted)}
+.form-row{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.form-row .field{flex:1}
+.material-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.material-card{background:#111a2b;border:1px solid #2c3a52;border-radius:15px;padding:15px;display:grid;gap:12px;min-width:0}
+.material-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.material-icon{font-size:23px;width:42px;height:42px;border-radius:13px;background:#233047;display:grid;place-items:center}
+.material-card .muted{font-size:11px;color:var(--muted)}
+.material-price{font-size:19px;font-weight:850}
+.material-bottom{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.recipe-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.recipe{border:1px solid #304058;background:#111a2b;border-radius:15px;padding:15px}
+.recipe-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.recipe-icon{width:42px;height:42px;border-radius:12px;background:#26334a;display:grid;place-items:center;font-size:22px}
+.recipe-title{font-size:14px;font-weight:850}
+.recipe-price{font-size:11px;color:var(--mint);margin-top:2px}
+.recipe p{font-size:11px;color:var(--muted);margin:8px 0 13px}
+.recipe .btn{width:100%}
+.progress{height:6px;background:#27334a;border-radius:99px;overflow:hidden;margin-top:9px}
+.progress span{display:block;height:100%;background:linear-gradient(90deg,var(--mint),var(--blue));border-radius:99px}
+.empty{border:1px dashed #3a4963;border-radius:14px;padding:25px;text-align:center;color:var(--muted);font-size:12px}
+.empty .big{font-size:26px;margin-bottom:7px}
+.section-spacer{margin-top:18px}
+hr.sep{border:0;border-top:1px solid #2c3950;margin:18px 0}
+.rule-list{display:grid;gap:10px}
+.rule{display:flex;gap:10px;align-items:flex-start;font-size:12px;color:#bac6db}
+.rule b{display:block;color:#eff4ff;margin-bottom:2px}
+.rule-num{width:25px;height:25px;flex:0 0 auto;background:#21354a;color:var(--mint);border-radius:8px;display:grid;place-items:center;font-size:11px;font-weight:850}
+.company-card{padding:17px;background:linear-gradient(140deg,#233e4b,#1b2a43);border:1px solid #426574;border-radius:16px;margin-bottom:16px}
+.company-eyebrow{font-size:10px;color:#9dd6cd;font-weight:850;letter-spacing:.15em}
+.company-name{font-size:23px;font-weight:900;margin:4px 0}
+.company-meta{font-size:11px;color:#b1c9ce}
+.company-badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
+.badge{font-size:10px;border:1px solid #526b7c;background:#263e50;padding:5px 8px;border-radius:7px;color:#cbe9e3}
+.meter-row{display:grid;grid-template-columns:80px 1fr 36px;gap:10px;align-items:center;margin:12px 0;font-size:11px}
+.meter{height:7px;border-radius:100px;background:#2b3850;overflow:hidden}
+.meter span{height:100%;display:block;background:linear-gradient(90deg,#5ddcb5,#80aaff);border-radius:100px}
+.event-card{border:1px solid #3f425d;background:linear-gradient(110deg,#24243c,#1e263a);padding:15px;border-radius:14px}
+.event-label{color:#c3b2ff;font-size:10px;font-weight:850;letter-spacing:.12em}
+.event-card strong{display:block;margin:5px 0;font-size:13px}
+.event-card p{color:#abb5cf;font-size:11px;margin:0}
+.toast{position:fixed;right:22px;bottom:22px;z-index:10;max-width:min(440px,calc(100vw - 32px));padding:13px 16px;border:1px solid #457e71;background:#142d2b;color:#e1fff4;border-radius:13px;box-shadow:var(--shadow);font-size:13px;opacity:0;transform:translateY(12px);pointer-events:none;transition:all .2s ease}
+.toast.show{opacity:1;transform:translateY(0)}
+.footer{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;color:#6f7f9c;font-size:10px;margin-top:24px;padding:0 3px}
+.footer a{color:#98b7ff;text-decoration:none}
+.small{font-size:11px;color:var(--muted)}
+.inline{display:inline-flex;align-items:center;gap:6px}
+.actions-line{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:22px 0 12px}
+@media(max-width:1050px){.app{grid-template-columns:205px minmax(0,1fr)}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-main{grid-template-columns:1fr}.sidebar{padding-inline:12px}.main{padding-inline:20px}}
+@media(max-width:680px){.app{display:block}.sidebar{padding:12px;border-right:0;border-bottom:1px solid var(--line);gap:12px}.brand{padding:2px 6px}.brand-mark{width:36px;height:36px}.side-label,.side-bottom{display:none}.nav{display:flex;overflow-x:auto;gap:6px;padding:0 2px 3px}.nav button{white-space:nowrap;flex:0 0 auto;width:auto;padding:9px 11px;font-size:12px}.nav-icon{font-size:16px;width:auto}.main{padding:17px 13px 28px}.topbar{margin-bottom:18px}.page-head{align-items:flex-start}.page-head .day-chip{padding:8px 10px}.day-chip strong{font-size:14px}.lead{font-size:12px}.kpis{gap:8px;margin:17px 0}.kpi{padding:13px;border-radius:14px}.kpi-value{font-size:21px}.panel{padding:15px;border-radius:15px}.material-grid,.recipe-grid{grid-template-columns:1fr}.quick-actions{gap:8px}.quick-action{padding:11px}.top-actions .pill{display:none}.chart{gap:5px}.chart-label{font-size:9px}.footer{display:block}.footer span{display:block;margin-top:7px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">∞</div>
+      <div><div class="brand-title">経済圏シミュレーター</div><div class="brand-sub">SYAKAI GAME · DEMO</div></div>
+    </div>
+    <div>
+      <div class="side-label">MANAGEMENT</div>
+      <nav class="nav" aria-label="メインメニュー">
+        <button class="active" data-tab="dashboard"><span class="nav-icon">◫</span>経営ダッシュボード</button>
+        <button data-tab="market"><span class="nav-icon">↗</span>市場・仕入れ</button>
+        <button data-tab="factory"><span class="nav-icon">⚙</span>工場・生産</button>
+        <button data-tab="company"><span class="nav-icon">▦</span>会社・資金</button>
+        <button data-tab="reports"><span class="nav-icon">▤</span>帳簿・レポート</button>
+      </nav>
+    </div>
+    <div class="side-bottom">
+      <div class="status-box">
+        <div class="status-title"><span class="dot"></span>セーブ状態</div>
+        <div class="status-number" id="save-status">自動保存</div>
+        <div class="mini-note">このブラウザー内に保存</div>
+      </div>
+      <div class="mini-note" style="padding:0 7px">DEMO 0.1<br>オフライン対応 · 外部ライブラリなし</div>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="topbar">
+      <div class="breadcrumb">SYAKAI GAME <span aria-hidden="true"> / </span><span id="breadcrumb">経営ダッシュボード</span></div>
+      <div class="top-actions">
+        <span class="pill"><span class="dot"></span> LOCAL SAVE</span>
+        <span class="pill">DEMO 0.1</span>
+        <button class="btn btn-ghost" data-action="reset">↻ 最初から</button>
+      </div>
+    </div>
+    <header class="page-head">
+      <div>
+        <div class="eyebrow">YOUR ECONOMY, YOUR RULES</div>
+        <h1 id="page-title">会社を育てよう。</h1>
+        <p class="lead" id="page-lead">仕入れて、作って、価格を決めて、売る。毎日の選択が経営を変えていく。</p>
+      </div>
+      <div class="day-chip"><div class="label">シミュレーション日</div><strong id="day-label">DAY 01 · 4/1</strong></div>
+    </header>
+    <section class="kpis" aria-label="経営状況">
+      <article class="kpi"><div class="kpi-top"><span>現金残高</span><span class="kpi-icon">◉</span></div><div class="kpi-value" id="kpi-cash">—</div><div class="kpi-bottom" id="kpi-cash-sub">次の一手に使える資金</div></article>
+      <article class="kpi"><div class="kpi-top"><span>今日までの売上</span><span class="kpi-icon">↗</span></div><div class="kpi-value" id="kpi-revenue">—</div><div class="kpi-bottom">販売で得た累計収入</div></article>
+      <article class="kpi"><div class="kpi-top"><span>商品在庫</span><span class="kpi-icon">▦</span></div><div class="kpi-value" id="kpi-stock">—</div><div class="kpi-bottom" id="kpi-stock-sub">販売できる完成品</div></article>
+      <article class="kpi"><div class="kpi-top"><span>評判</span><span class="kpi-icon">✦</span></div><div class="kpi-value" id="kpi-rep">—</div><div class="kpi-bottom" id="kpi-staff">小さな店からスタート</div></article>
+    </section>
+    <div class="notice"><span>⚠</span><div><strong>デモの世界での約束：</strong>通貨は架空の「ミライ円」です。現実のお金・商品・金券との交換、現実の仕事の依頼や報酬は禁止。雇用は架空のNPCのみ。これは法令エンジンではなく、ゲーム独自のルールを試す試作版です。</div></div>
+    <div id="page" aria-live="polite"></div>
+    <footer class="footer"><span>SYAKAI GAME · DEMO 0.1 — シミュレーション上の取引です。現実の金銭価値はありません。</span><span><a href="https://github.com/marimutukisinnmu-rgb/syakaigame" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a> · 保存データはこのブラウザー内のみ</span></footer>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+"use strict";
+(function(){
+  const SAVE_KEY = "syakaigame_demo_01";
+  const ITEMS = {
+    wood:{name:"木材",icon:"🪵",base:350,unit:"本",description:"家具づくりの基本素材"},
+    iron:{name:"鉄材",icon:"🔩",base:520,unit:"本",description:"丈夫な製品の材料"},
+    flour:{name:"小麦粉",icon:"🌾",base:180,unit:"袋",description:"パンづくりに必要"},
+    parts:{name:"電子部品",icon:"🔌",base:210,unit:"個",description:"ランプなどの部品"}
+  };
+  const PRODUCTS = [
+    {id:"chair",name:"木製チェア",icon:"🪑",base:1800,demand:5,recipe:{wood:2},process:120,description:"木材を使う定番家具"},
+    {id:"bread",name:"焼きたてパン",icon:"🍞",base:420,demand:25,recipe:{flour:2},process:30,description:"回転率の高い食品"},
+    {id:"desk",name:"ワークデスク",icon:"🗄️",base:4800,demand:2,recipe:{wood:4,iron:1},process:200,description:"高単価だが素材が多い"},
+    {id:"lamp",name:"スマートランプ",icon:"💡",base:2600,demand:7,recipe:{iron:1,parts:2},process:100,description:"部品を組み合わせた商品"}
+  ];
+  const TAB_NAMES = {dashboard:"経営ダッシュボード",market:"市場・仕入れ",factory:"工場・生産",company:"会社・資金",reports:"帳簿・レポート"};
+  const PAGE_META = {
+    dashboard:{title:"会社を育てよう。",lead:"仕入れて、作って、価格を決めて、売る。毎日の選択が経営を変えていく。"},
+    market:{title:"市場を読み、仕入れる。",lead:"素材価格は日ごとに変わる。在庫と資金を見ながら、次の生産を考えよう。"},
+    factory:{title:"作るほど、経済が動く。",lead:"素材を消費して商品を製造。1日に作れる数量には生産能力の上限がある。"},
+    company:{title:"会社の未来に投資する。",lead:"法人化、広告、NPC雇用、銀行ローン。どの投資にもコストとリスクがある。"},
+    reports:{title:"数字を見れば、次がわかる。",lead:"毎日の販売・費用・利益と取引履歴を確認しよう。すべてデモ用の帳簿だ。"}
+  };
+  function initialState(){
+    const materialPrices = {};
+    const materialAverageCost = {};
+    const materials = {};
+    Object.keys(ITEMS).forEach(function(id){materialPrices[id]=ITEMS[id].base;materialAverageCost[id]=ITEMS[id].base;materials[id]=id==="wood"?8:id==="iron"?4:id==="flour"?12:6;});
+    const products = {};
+    const prices = {};
+    PRODUCTS.forEach(function(p){products[p.id]={qty:0,unitCost:0};prices[p.id]=p.base;});
+    return {
+      version:1,day:1,cash:300000,companyName:"みらい商店",companyType:"個人事業",incorporated:false,
+      employees:0,popularity:18,marketingDays:0,materials:materials,materialPrices:materialPrices,
+      materialAverageCost:materialAverageCost,products:products,prices:prices,loan:null,
+      totalRevenue:0,totalSold:0,totalProduced:0,totalOperatingCost:0,history:[],ledger:[],
+      news:[{day:1,text:"商店街に新しい店がオープン。あなたの経営が始まった！"}],dailyProduced:0
+    };
+  }
+  function loadState(){
+    try{
+      const raw=localStorage.getItem(SAVE_KEY);
+      if(!raw)return initialState();
+      const saved=JSON.parse(raw);
+      if(!saved||saved.version!==1)return initialState();
+      const base=initialState();
+      return Object.assign(base,saved,{
+        materials:Object.assign(base.materials,saved.materials||{}),
+        materialPrices:Object.assign(base.materialPrices,saved.materialPrices||{}),
+        materialAverageCost:Object.assign(base.materialAverageCost,saved.materialAverageCost||{}),
+        products:Object.assign(base.products,saved.products||{}),
+        prices:Object.assign(base.prices,saved.prices||{})
+      });
+    }catch(e){return initialState();}
+  }
+  let state=loadState();
+  let activeTab="dashboard";
+  let toastTimer=null;
+  const $=function(sel,root){return (root||document).querySelector(sel);};
+  const money=function(n){return "¥"+Math.round(n||0).toLocaleString("ja-JP");};
+  const number=function(n){return Math.round(n||0).toLocaleString("ja-JP");};
+  const clamp=function(n,min,max){return Math.min(max,Math.max(min,n));};
+  function dateFor(day){
+    const d=new Date(2026,3,1);d.setDate(d.getDate()+day-1);
+    return (d.getMonth()+1)+"/"+d.getDate();
+  }
+  function saveState(){
+    try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));$("#save-status").textContent="自動保存済み";return true;}
+    catch(e){$("#save-status").textContent="保存不可";return false;}
+  }
+  function log(text,type,amount){
+    state.ledger.unshift({day:state.day,text:text,type:type||"info",amount:typeof amount==="number"?amount:null});
+    if(state.ledger.length>100)state.ledger.length=100;
+  }
+  function addNews(text){
+    state.news.unshift({day:state.day,text:text});
+    if(state.news.length>12)state.news.length=12;
+  }
+  function toast(text){
+    const node=$("#toast");node.textContent=text;node.classList.add("show");
+    if(toastTimer)clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){node.classList.remove("show");},2900);
+  }
+  function setTab(tab){
+    if(!TAB_NAMES[tab])return;
+    activeTab=tab;render();window.scrollTo({top:0,behavior:"smooth"});
+  }
+  function totalStock(){
+    return PRODUCTS.reduce(function(sum,p){return sum+state.products[p.id].qty;},0);
+  }
+  function totalInventoryValue(){
+    let sum=0;
+    Object.keys(state.materials).forEach(function(k){sum+=state.materials[k]*state.materialAverageCost[k];});
+    PRODUCTS.forEach(function(p){sum+=state.products[p.id].qty*state.products[p.id].unitCost;});
+    return sum;
+  }
+  function productionCapacity(){return 8+state.employees*8;}
+  function recipeText(p){
+    return Object.keys(p.recipe).map(function(k){return ITEMS[k].name+" ×"+p.recipe[k];}).join(" / ");
+  }
+  function maxBuildable(p){
+    let max=999;
+    Object.keys(p.recipe).forEach(function(k){max=Math.min(max,Math.floor(state.materials[k]/p.recipe[k]));});
+    return Math.min(max,Math.max(0,productionCapacity()-state.dailyProduced));
+  }
+  function renderKpis(){
+    $("#kpi-cash").textContent=money(state.cash);
+    $("#kpi-cash-sub").textContent=state.cash<50000?"資金に注意しよう":"次の一手に使える資金";
+    $("#kpi-cash").className="kpi-value"+(state.cash<0?" negative":state.cash<50000?" gold":"");
+    $("#kpi-revenue").textContent=money(state.totalRevenue);
+    $("#kpi-stock").textContent=number(totalStock())+" 個";
+    $("#kpi-stock-sub").textContent="在庫評価額 "+money(totalInventoryValue());
+    $("#kpi-rep").textContent=number(state.popularity)+" / 100";
+    $("#kpi-staff").textContent=(state.employees?"NPC従業員 "+state.employees+"名":"従業員なし")+" · 生産能力 "+productionCapacity()+" 個/日";
+    $("#day-label").textContent="DAY "+String(state.day).padStart(2,"0")+" · "+dateFor(state.day);
+    $("#breadcrumb").textContent=TAB_NAMES[activeTab];
+    $("#page-title").textContent=PAGE_META[activeTab].title;
+    $("#page-lead").textContent=PAGE_META[activeTab].lead;
+    document.querySelectorAll("[data-tab]").forEach(function(btn){btn.classList.toggle("active",btn.dataset.tab===activeTab);});
+  }
+  function renderChart(){
+    const rows=state.history.slice(0,8).reverse();
+    if(!rows.length)return '<div class="chart-empty">まだ販売データがありません。<br>商品を作って「1日進める」を押そう。</div>';
+    const max=Math.max(1,...rows.map(function(r){return r.revenue;}));
+    return '<div class="chart">'+rows.map(function(r){
+      const height=Math.max(4,Math.round(r.revenue/max*120));
+      return '<div class="chart-col"><div class="bar-area"><div class="bar" title="売上 '+money(r.revenue)+'" style="height:'+height+'px"></div></div><div class="chart-label">'+r.date+'</div></div>';
+    }).join("")+'</div><div class="legend"><span><i class="legend-dot"></i>日次売上</span><span class="small">直近'+rows.length+'日</span></div>';
+  }
+  function renderNews(limit){
+    const list=state.news.slice(0,limit||4);
+    if(!list.length)return '<div class="empty">ニュースはまだありません。</div>';
+    return '<div class="list">'+list.map(function(n){return '<div class="list-row"><div class="list-emoji">📰</div><div class="list-copy"><strong>'+escapeHtml(n.text)+'</strong><small>DAY '+String(n.day).padStart(2,"0")+' · '+dateFor(n.day)+'</small></div></div>';}).join("")+'</div>';
+  }
+  function escapeHtml(value){
+    return String(value).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];});
+  }
+  function renderProductTable(){
+    return '<div class="table-wrap"><table><thead><tr><th>商品</th><th class="right">在庫</th><th class="right">販売価格</th><th class="right">原価</th><th class="right">粗利/個</th></tr></thead><tbody>'+
+      PRODUCTS.map(function(p){
+        const stock=state.products[p.id],price=state.prices[p.id],profit=price-stock.unitCost;
+        return '<tr><td><div class="product-name"><span class="product-emoji">'+p.icon+'</span><span>'+p.name+'</span></div></td><td class="right">'+number(stock.qty)+'</td><td class="right">'+money(price)+'</td><td class="right">'+money(stock.unitCost)+'</td><td class="right '+(profit>=0?"positive":"negative")+'">'+money(profit)+'</td></tr>';
+      }).join("")+'</tbody></table></div>';
+  }
+  function renderDashboard(){
+    return '<div class="grid-main"><div class="stack">'+
+      '<section class="panel"><div class="panel-head"><div><h2>売上の推移</h2><p>日次の販売結果。ターンを進めると記録される。</p></div><span class="tag">SALES</span></div>'+renderChart()+'</section>'+
+      '<section class="panel"><div class="panel-head"><div><h2>商品ポートフォリオ</h2><p>在庫・価格・原価を確認して次の生産を決めよう。</p></div><button class="btn" data-tab="market">価格を調整 ↗</button></div>'+renderProductTable()+'</section>'+
+      '<section class="panel"><div class="panel-head"><div><h2>最近の取引</h2><p>購入・製造・販売・運営費用。</p></div><button class="btn btn-ghost" data-tab="reports">帳簿を見る →</button></div>'+renderLedger(5)+'</section>'+
+      '</div><div class="stack">'+
+      '<section class="panel"><div class="panel-head"><div><h2>今日のアクション</h2><p>店を成長させる4つの基本操作。</p></div></div><div class="quick-actions">'+
+      '<button class="quick-action" data-tab="market"><span class="qa-icon">🧺</span><strong>素材を仕入れる</strong><span>市場価格を見て購入</span></button>'+
+      '<button class="quick-action" data-tab="factory"><span class="qa-icon">⚙️</span><strong>商品を製造する</strong><span>素材を商品へ変換</span></button>'+
+      '<button class="quick-action" data-tab="company"><span class="qa-icon">📣</span><strong>広告を出す</strong><span>評判と需要をアップ</span></button>'+
+      '<button class="quick-action" data-action="advance"><span class="qa-icon">⏭️</span><strong>1日進める</strong><span>販売・賃金・費用を精算</span></button>'+
+      '</div><div class="notice mint" style="margin-bottom:0"><span>💡</span><div>1日進めると在庫が自動販売されるよ。<strong>価格を高くしすぎると売れにくくなる</strong>ので注意！</div></div></section>'+
+      '<section class="panel"><div class="panel-head"><div><h2>市場ニュース</h2><p>経済の変化をチェック。</p></div><span class="tag">MARKET</span></div>'+renderNews(4)+'</section>'+
+      '<section class="panel"><div class="panel-head"><div><h2>次の経営目標</h2><p>おすすめの進行順</p></div></div><div class="rule-list">'+
+      '<div class="rule"><span class="rule-num">01</span><div><b>小さく作って売る</b>パンやチェアで売上を作ろう。</div></div>'+
+      '<div class="rule"><span class="rule-num">02</span><div><b>価格と在庫を調整する</b>需要と原価を見ながら利益を伸ばす。</div></div>'+
+      '<div class="rule"><span class="rule-num">03</span><div><b>投資して事業を広げる</b>法人化・広告・NPC雇用を検討。</div></div>'+
+      '</div><hr class="sep"><button class="btn btn-primary" style="width:100%" data-action="advance">⏭️ 1日進める · 販売を精算</button></section>'+
+      '</div></div>';
+  }
+  function renderMarket(){
+    const cards=Object.keys(ITEMS).map(function(id){
+      const m=ITEMS[id],price=state.materialPrices[id],owned=state.materials[id];
+      const change=(price-m.base)/m.base*100;
+      return '<article class="material-card"><div class="material-top"><div class="material-icon">'+m.icon+'</div><span class="tag">在庫 '+number(owned)+m.unit+'</span></div><div><div class="muted">'+m.name+' · '+m.description+'</div><div class="material-price">'+money(price)+' <span class="muted">/ '+m.unit+'</span></div><div class="small '+(change>0?"gold":change<0?"positive":"")+'">'+(change>0?"▲ ":change<0?"▼ ":"— ")+Math.abs(change).toFixed(1)+'% · 基準 '+money(m.base)+'</div></div><div class="material-bottom"><span class="muted">購入単位：5 '+m.unit+'</span><button class="btn btn-primary" data-action="buy" data-id="'+id+'">5個仕入れる</button></div></article>';
+    }).join("");
+    return '<section class="panel"><div class="panel-head"><div><h2>原材料市場</h2><p>仕入れた素材は工場で製品にできる。市場価格は1日ごとに変動。</p></div><span class="tag">RAW MATERIALS</span></div><div class="material-grid">'+cards+'</div>'+
+      '<div class="notice"><span>📉</span><div>在庫は資産でもあり、使わなければ現金に戻らない。必要量を考えて<strong>買いすぎに注意</strong>しよう。</div></div></section>'+
+      '<section class="panel section-spacer"><div class="panel-head"><div><h2>製品価格の設定</h2><p>値付けは自由。ただし高すぎる価格は需要を落とす。</p></div><span class="tag">PRICING</span></div>'+
+      '<div class="table-wrap"><table><thead><tr><th>商品</th><th class="right">市場基準価格</th><th class="right">設定価格</th><th class="right">原価/個</th><th class="right">粗利/個</th></tr></thead><tbody>'+
+      PRODUCTS.map(function(p){const price=state.prices[p.id],cost=state.products[p.id].unitCost;return '<tr><td><div class="product-name"><span class="product-emoji">'+p.icon+'</span>'+p.name+'</div></td><td class="right">'+money(p.base)+'</td><td class="right"><input class="input small-input" type="number" min="1" max="9999999" step="10" value="'+price+'" data-price="'+p.id+'" aria-label="'+p.name+'の販売価格"></td><td class="right">'+money(cost)+'</td><td class="right '+(price-cost>=0?"positive":"negative")+'">'+money(price-cost)+'</td></tr>';}).join("")+
+      '</tbody></table></div><div class="small" style="margin-top:10px">価格を変更すると自動保存される。初期価格はデモ用の仮設定で、現実の商品相場を表すものではありません。</div></section>';
+  }
+  function renderFactory(){
+    const cards=PRODUCTS.map(function(p){
+      const max=maxBuildable(p),owned=state.products[p.id];
+      const cost=Object.keys(p.recipe).reduce(function(s,k){return s+p.recipe[k]*state.materialAverageCost[k];},0)+p.process;
+      return '<article class="recipe"><div class="recipe-top"><div class="recipe-icon">'+p.icon+'</div><div><div class="recipe-title">'+p.name+'</div><div class="recipe-price">売価 '+money(state.prices[p.id])+' · 推定原価 '+money(cost)+'</div></div></div><p>'+p.description+'<br>必要素材：'+recipeText(p)+'<br>商品在庫：'+number(owned.qty)+' 個</p><div class="small">生産可能数：最大 '+number(max)+' 個</div><div class="progress"><span style="width:'+Math.round(Math.min(1,max/Math.max(1,productionCapacity()))*100)+'%"></span></div><button class="btn '+(max>0&&state.cash>=p.process?"btn-primary":"")+'" style="margin-top:13px" data-action="produce" data-id="'+p.id+'" '+(max<1||state.cash<p.process?"disabled":"")+'>1個つくる</button></article>';
+    }).join("");
+    return '<div class="grid-main"><div class="stack"><section class="panel"><div class="panel-head"><div><h2>製造ライン</h2><p>ボタンで1個ずつ生産。素材と加工費が必要。</p></div><span class="tag">FACTORY</span></div><div class="small">本日の生産能力：'+number(state.dailyProduced)+' / '+number(productionCapacity())+' 個を使用済み</div><div class="progress"><span style="width:'+Math.min(100,state.dailyProduced/productionCapacity()*100)+'%"></span></div><div class="recipe-grid section-spacer">'+cards+'</div></section></div><div class="stack"><section class="panel"><div class="panel-head"><div><h2>原材料の在庫</h2><p>不足した素材は市場で仕入れよう。</p></div><button class="btn" data-tab="market">市場へ ↗</button></div><div class="list">'+Object.keys(ITEMS).map(function(id){const m=ITEMS[id];return '<div class="list-row"><div class="list-emoji">'+m.icon+'</div><div class="list-copy"><strong>'+m.name+'</strong><small>'+money(state.materialAverageCost[id])+' / '+m.unit+'</small></div><div class="list-value">'+number(state.materials[id])+' '+m.unit+'</div></div>';}).join("")+'</div></section>'+
+      '<section class="panel"><div class="panel-head"><div><h2>生産のヒント</h2><p>コストを読み違えない</p></div><span class="tag">TIP</span></div><div class="rule-list"><div class="rule"><span class="rule-num">1</span><div><b>素材価格は仕入れ時に確定</b>値上がり前に買うのも作戦。</div></div><div class="rule"><span class="rule-num">2</span><div><b>加工費は製造時に支払う</b>手元資金を残してから作ろう。</div></div><div class="rule"><span class="rule-num">3</span><div><b>毎日の生産には上限がある</b>NPCを雇うと生産能力が上がる。</div></div></div></section></div></div>';
+  }
+  function renderCompany(){
+    const loan=state.loan;
+    return '<div class="grid-main"><div class="stack"><section class="panel"><div class="company-card"><div class="company-eyebrow">YOUR BUSINESS</div><div class="company-name">'+escapeHtml(state.companyName)+'</div><div class="company-meta">'+state.companyType+' · DEMO BUSINESS ID '+String(2031+state.day).padStart(5,"0")+'</div><div class="company-badges"><span class="badge">'+(state.incorporated?"法人化済み":"個人事業")+'</span><span class="badge">評判 '+state.popularity+'/100</span><span class="badge">NPC従業員 '+state.employees+'名</span></div></div><div class="field"><label for="company-name-input">屋号・会社名</label><input id="company-name-input" class="input" type="text" maxlength="32" value="'+escapeHtml(state.companyName)+'" autocomplete="off"><div class="field-help">最大32文字。ゲーム内表示名です。</div></div><button class="btn" style="margin-top:10px" data-action="save-name">名前を保存</button><hr class="sep"><div class="panel-head"><div><h2>法人化</h2><p>会社形態の変更をシミュレーションする。</p></div><span class="tag">BUSINESS</span></div><div class="list-row"><div class="list-emoji">🏢</div><div class="list-copy"><strong>株式会社を設立</strong><small>設立費用としてゲーム内通貨 ¥100,000</small></div><div class="list-value">'+(state.incorporated?'<span class="positive">設立済み</span>': '<button class="btn btn-primary" data-action="incorporate" '+(state.cash<100000?"disabled":"")+'>設立する</button>')+'</div></div><p class="small">ここでの法人化はゲーム内の進行フラグで、現実の登記や法的な会社設立ではありません。</p></section>'+
+      '<section class="panel"><div class="panel-head"><div><h2>経営投資</h2><p>評判・需要・生産力を伸ばそう。</p></div></div><div class="list-row"><div class="list-emoji">📣</div><div class="list-copy"><strong>広告キャンペーン</strong><small>費用 ¥20,000 · 評判 +8 · 3日間需要アップ</small></div><div class="list-value"><button class="btn" data-action="marketing" '+(state.cash<20000?"disabled":"")+'>広告を出す</button></div></div><div class="list-row"><div class="list-emoji">🧑‍🏭</div><div class="list-copy"><strong>NPC従業員を雇う</strong><small>初期費用 ¥25,000 · 毎日給与 ¥2,200 · 生産力 +8</small></div><div class="list-value"><button class="btn" data-action="hire" '+(state.employees>=3||state.cash<25000?"disabled":"")+'>雇用する</button></div></div><p class="small" style="margin-top:12px">このデモで雇えるのは架空のNPCだけ。実在のプレイヤーへの労働依頼や現実の報酬は扱いません。</p></section></div>'+
+      '<div class="stack"><section class="panel"><div class="panel-head"><div><h2>銀行・資金繰り</h2><p>借入は将来の返済義務になる。</p></div><span class="tag">FINANCE</span></div><div class="list-row"><div class="list-emoji">🏦</div><div class="list-copy"><strong>デモ銀行ローン</strong><small>借入 ¥100,000 · 手数料込み返済額 ¥108,000 · 期限10日</small></div><div class="list-value"><button class="btn" data-action="loan" '+(loan||state.cash<0?"disabled":"")+'>借りる</button></div></div>'+
+      (loan?'<div class="notice '+(loan.overdue?"":"mint")+'"><span>💳</span><div><strong>'+(loan.overdue?"返済期限超過":"ローン返済")+'</strong><br>残高 '+money(loan.balance)+' · 期限 DAY '+String(loan.dueDay).padStart(2,"0")+'<br>'+(loan.overdue?"期限超過後は5日ごとに3%のゲーム内ペナルティが加算されます。":"期限前に全額返済できるよ。")+'</div></div><button class="btn btn-primary" style="width:100%" data-action="repay" '+(state.cash<loan.balance?"disabled":"")+'>ローンを全額返済する · '+money(loan.balance)+'</button>':'<div class="empty"><div class="big">✓</div>現在、借入はありません。<br>借りすぎず返済計画を立てよう。</div>')+
+      '<hr class="sep"><div class="meter-row"><span>現金余力</span><div class="meter"><span style="width:'+clamp(state.cash/300000*100,0,100)+'%"></span></div><strong>'+Math.round(clamp(state.cash/300000*100,0,100))+'%</strong></div><div class="meter-row"><span>評判</span><div class="meter"><span style="width:'+state.popularity+'%"></span></div><strong>'+state.popularity+'%</strong></div><div class="meter-row"><span>生産力</span><div class="meter"><span style="width:'+clamp(productionCapacity()/32*100,0,100)+'%"></span></div><strong>'+productionCapacity()+'</strong></div></section>'+
+      '<section class="panel"><div class="panel-head"><div><h2>運営・安全ルール</h2><p>このデモの大前提</p></div></div><div class="rule-list"><div class="rule"><span class="rule-num">✓</span><div><b>架空通貨のみ</b>現実のお金・商品・金券との交換は禁止。</div></div><div class="rule"><span class="rule-num">✓</span><div><b>現実の仕事を依頼しない</b>ゲーム内雇用は架空のNPCに限定。</div></div><div class="rule"><span class="rule-num">✓</span><div><b>個人情報は登録しない</b>このデモにログイン・実名登録機能はありません。</div></div></div></section></div></div>';
+  }
+  function renderLedger(limit){
+    const rows=state.ledger.slice(0,limit||30);
+    if(!rows.length)return '<div class="empty"><div class="big">🧾</div>取引履歴はまだありません。<br>市場で仕入れたり、商品を作ったりしてみよう。</div>';
+    return '<div class="table-wrap"><table><thead><tr><th>日付</th><th>内容</th><th>分類</th><th class="right">金額</th></tr></thead><tbody>'+rows.map(function(x){
+      const amount=x.amount===null?"—":money(x.amount);
+      const sign=x.amount===null?"":x.amount<0?"negative":"positive";
+      const typeName={buy:"仕入れ",produce:"製造",sale:"販売",cost:"運営費",loan:"融資",repay:"返済",company:"会社",marketing:"広告",hire:"雇用",market:"市場",info:"情報"}[x.type]||"取引";
+      return '<tr><td>DAY '+String(x.day).padStart(2,"0")+'</td><td>'+escapeHtml(x.text)+'</td><td><span class="tag">'+typeName+'</span></td><td class="right '+sign+'">'+amount+'</td></tr>';
+    }).join("")+'</tbody></table></div>';
+  }
+  function renderReports(){
+    const last=state.history[0];
+    const profit=state.history.reduce(function(s,r){return s+r.profit;},0);
+    return '<div class="grid-main"><div class="stack"><section class="panel"><div class="panel-head"><div><h2>日次レポート</h2><p>日ごとの売上・原価・固定費を確認しよう。</p></div><span class="tag">P&L</span></div>'+
+      (state.history.length?'<div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr));margin:0 0 15px"><div class="kpi"><div class="kpi-top">最終日の売上</div><div class="kpi-value" style="font-size:18px">'+money(last.revenue)+'</div></div><div class="kpi"><div class="kpi-top">最終日の利益</div><div class="kpi-value '+(last.profit>=0?"positive":"negative")+'" style="font-size:18px">'+money(last.profit)+'</div></div><div class="kpi"><div class="kpi-top">累計利益</div><div class="kpi-value '+(profit>=0?"positive":"negative")+'" style="font-size:18px">'+money(profit)+'</div></div></div><div class="table-wrap"><table><thead><tr><th>日付</th><th class="right">売上</th><th class="right">売れた数</th><th class="right">売上原価</th><th class="right">運営費</th><th class="right">利益</th></tr></thead><tbody>'+state.history.map(function(r){return '<tr><td>'+r.date+'</td><td class="right">'+money(r.revenue)+'</td><td class="right">'+number(r.sold)+'</td><td class="right">'+money(r.cogs)+'</td><td class="right">'+money(r.operating)+'</td><td class="right '+(r.profit>=0?"positive":"negative")+'">'+money(r.profit)+'</td></tr>';}).join("")+'</tbody></table></div>':'<div class="empty"><div class="big">📈</div>まだ日次レポートがありません。<br>商品を準備して1日進めてみよう。</div>')+
+      '<p class="small" style="margin-top:13px">利益は販売売上 − 販売した商品の原価 − 当日の運営費・給与で算出。仕入れや製造加工費の現金支出時点とは異なるため、現金残高と同じ数字にはなりません。</p></section>'+
+      '<section class="panel"><div class="panel-head"><div><h2>取引台帳</h2><p>直近の取引を新しい順に表示。</p></div><span class="tag">LEDGER</span></div>'+renderLedger(40)+'</section></div>'+
+      '<div class="stack"><section class="panel"><div class="panel-head"><div><h2>事業サマリー</h2><p>ゲーム内の累計実績</p></div></div><div class="list">'+
+      '<div class="list-row"><div class="list-emoji">💰</div><div class="list-copy"><strong>累計売上</strong><small>販売から入った合計金額</small></div><div class="list-value">'+money(state.totalRevenue)+'</div></div>'+
+      '<div class="list-row"><div class="list-emoji">📦</div><div class="list-copy"><strong>累計販売数</strong><small>購入された完成品</small></div><div class="list-value">'+number(state.totalSold)+' 個</div></div>'+
+      '<div class="list-row"><div class="list-emoji">⚙️</div><div class="list-copy"><strong>累計製造数</strong><small>生産ラインから出た商品</small></div><div class="list-value">'+number(state.totalProduced)+' 個</div></div>'+
+      '<div class="list-row"><div class="list-emoji">🗓️</div><div class="list-copy"><strong>経過日数</strong><small>デモのシミュレーション日数</small></div><div class="list-value">'+number(state.day-1)+' 日</div></div>'+
+      '</div></section><section class="panel"><div class="panel-head"><div><h2>市場ニュース</h2><p>直近の更新</p></div></div>'+renderNews(6)+'</section><section class="panel"><button class="btn btn-danger" style="width:100%" data-action="reset">セーブデータをリセット</button><p class="small" style="margin:10px 0 0">リセットするとこのブラウザーに保存されたデモの進行状況が消えます。</p></section></div></div>';
+  }
+  function render(){
+    renderKpis();
+    const page=$("#page");
+    if(activeTab==="dashboard")page.innerHTML=renderDashboard();
+    else if(activeTab==="market")page.innerHTML=renderMarket();
+    else if(activeTab==="factory")page.innerHTML=renderFactory();
+    else if(activeTab==="company")page.innerHTML=renderCompany();
+    else page.innerHTML=renderReports();
+    saveState();
+  }
+  function buyMaterial(id){
+    const item=ITEMS[id];if(!item)return;
+    const qty=5,price=state.materialPrices[id],cost=qty*price;
+    if(state.cash<cost){toast("資金不足。仕入れ量を見直そう。");return;}
+    const oldQty=state.materials[id],oldCost=state.materialAverageCost[id];
+    state.materials[id]+=qty;
+    state.materialAverageCost[id]=Math.round((oldQty*oldCost+qty*price)/(oldQty+qty));
+    state.cash-=cost;
+    log(item.name+"を"+qty+item.unit+"仕入れ",- "buy",-cost);
+    addNews(item.name+"を"+qty+item.unit+"仕入れた。支出 "+money(cost)+"。");
+    toast(item.name+"を"+qty+item.unit+"仕入れた！");
+    render();
+  }
+  function produceProduct(id,qty){
+    const p=PRODUCTS.find(function(x){return x.id===id;});if(!p)return;
+    qty=qty||1;
+    if(qty<1||qty>maxBuildable(p)){toast("素材または本日の生産能力が不足しています。");return;}
+    const processCost=p.process*qty;
+    if(state.cash<processCost){toast("加工費が不足しています。");return;}
+    const missing=[];
+    Object.keys(p.recipe).forEach(function(k){const need=p.recipe[k]*qty;if(state.materials[k]<need)missing.push(ITEMS[k].name+" "+need+"必要");});
+    if(missing.length){toast("素材が足りません："+missing.join(" / "));return;}
+    let unitCost=p.process;
+    Object.keys(p.recipe).forEach(function(k){const need=p.recipe[k]*qty;state.materials[k]-=need;unitCost+=p.recipe[k]*state.materialAverageCost[k];});
+    const stock=state.products[id],oldQty=stock.qty;
+    stock.unitCost=oldQty?Math.round((stock.qty*stock.unitCost+qty*unitCost)/(stock.qty+qty)):unitCost;
+    stock.qty+=qty;state.cash-=processCost;state.dailyProduced+=qty;state.totalProduced+=qty;
+    log(p.name+"を"+qty+"個製造","produce",-processCost);
+    addNews(p.name+"を"+qty+"個製造。加工費 "+money(processCost)+"。");
+    toast(p.name+"を"+qty+"個製造した！");
+    render();
+  }
+  function incorporate(){
+    if(state.incorporated){toast("すでに法人化しています。");return;}
+    if(state.cash<100000){toast("設立費用¥100,000が必要です。");return;}
+    state.cash-=100000;state.incorporated=true;state.companyType="株式会社";
+    log("ゲーム内で株式会社を設立","company",-100000);
+    addNews(state.companyName+"がゲーム内で株式会社になった！");
+    toast("法人化した！ 設立費用¥100,000を支払いました。");render();
+  }
+  function marketing(){
+    if(state.cash<20000){toast("広告費¥20,000が必要です。");return;}
+    state.cash-=20000;state.popularity=clamp(state.popularity+8,0,100);state.marketingDays=3;
+    log("広告キャンペーンを実施","marketing",-20000);
+    addNews("広告キャンペーンが開始。今後3日間は需要が高まりやすい。");
+    toast("広告を開始！ 評判が上がり、3日間需要アップ。");render();
+  }
+  function hire(){
+    if(state.employees>=3){toast("デモ版ではNPC従業員は最大3名です。");return;}
+    if(state.cash<25000){toast("雇用初期費用¥25,000が必要です。");return;}
+    state.cash-=25000;state.employees++;
+    log("NPC従業員を1名雇用","hire",-25000);
+    addNews("NPC従業員が加わり、生産能力が上がった。");
+    toast("NPC従業員を雇用した！ 毎日の給与も忘れずに。");render();
+  }
+  function takeLoan(){
+    if(state.loan){toast("追加融資の前に現在のローンを返済してください。");return;}
+    if(state.cash<0){toast("現金残高がマイナスのときは新規借入できません。");return;}
+    state.cash+=100000;state.loan={balance:108000,dueDay:state.day+10,overdue:false};
+    log("デモ銀行から借入（返済額に手数料を含む）","loan",100000);
+    addNews("デモ銀行から¥100,000を借り入れた。返済予定額は¥108,000。");
+    toast("¥100,000を借り入れた。DAY "+state.loan.dueDay+"までに返そう。");render();
+  }
+  function repayLoan(){
+    if(!state.loan)return;
+    if(state.cash<state.loan.balance){toast("返済には"+money(state.loan.balance)+"が必要です。");return;}
+    const amount=state.loan.balance;state.cash-=amount;state.loan=null;
+    log("デモ銀行ローンを全額返済","repay",-amount);
+    addNews("ローンを完済。資金繰りが少し身軽になった。");
+    toast("ローンを完済した！");render();
+  }
+  function setCompanyName(){
+    const input=$("#company-name-input");
+    if(!input)return;
+    const name=input.value.trim();
+    if(!name){toast("会社名を入力してください。");return;}
+    state.companyName=name.slice(0,32);
+    log("屋号・会社名を「"+state.companyName+"」に変更","company",null);
+    toast("会社名を保存しました。");render();
+  }
+  function finishDay(){
+    const finishingDay=state.day;
+    let revenue=0,cogs=0,soldTotal=0;
+    const salesText=[];
+    PRODUCTS.forEach(function(p){
+      const stock=state.products[p.id],price=state.prices[p.id];
+      if(stock.qty<=0)return;
+      const priceFactor=clamp(Math.pow(p.base/Math.max(1,price),1.25),0.25,1.8);
+      const randomness=0.75+Math.random()*0.5;
+      const adFactor=state.marketingDays>0?1.25:1;
+      const staffFactor=1+state.employees*0.07;
+      const reputationFactor=0.72+state.popularity/125;
+      const marketFactor=0.9+Math.random()*0.2;
+      const demand=Math.max(0,Math.floor(p.demand*priceFactor*randomness*adFactor*staffFactor*reputationFactor*marketFactor));
+      const sold=Math.min(stock.qty,demand);
+      if(sold>0){
+        const proceeds=sold*price,goodsCost=sold*stock.unitCost;
+        stock.qty-=sold;revenue+=proceeds;cogs+=goodsCost;soldTotal+=sold;
+        salesText.push(p.name+" "+sold+"個");
+      }
+    });
+    const operating=1200+state.employees*2200;
+    state.cash+=revenue-operating;
+    const profit=revenue-cogs-operating;
+    state.totalRevenue+=revenue;state.totalSold+=soldTotal;state.totalOperatingCost+=operating;
+    state.history.unshift({day:finishingDay,date:dateFor(finishingDay),revenue:revenue,sold:soldTotal,cogs:cogs,operating:operating,profit:profit,cash:state.cash});
+    if(state.history.length>60)state.history.length=60;
+    log("1日の販売を精算（"+soldTotal+"個）","sale",revenue);
+    log("店舗運営費・NPC給与を支払い","cost",-operating);
+    if(state.marketingDays>0)state.marketingDays--;
+    if(profit>0)state.popularity=clamp(state.popularity+1,0,100);
+    else if(revenue===0)state.popularity=clamp(state.popularity-1,0,100);
+    state.day++;
+    state.dailyProduced=0;
+    if(state.loan&&state.day>=state.loan.dueDay){
+      if(!state.loan.overdue){
+        state.loan.balance=Math.ceil(state.loan.balance*1.05);state.loan.overdue=true;state.loan.dueDay=state.day+5;
+        log("ローン返済期限超過：ゲーム内ペナルティを加算","loan",null);
+        addNews("ローンが期限超過。残高に5%のゲーム内ペナルティが加算された。");
+      }else{
+        state.loan.balance=Math.ceil(state.loan.balance*1.03);state.loan.dueDay=state.day+5;
+        log("ローン期限超過ペナルティ","loan",null);
+        addNews("ローン期限超過が継続。残高に3%のゲーム内ペナルティが加算された。");
+      }
+    }
+    Object.keys(ITEMS).forEach(function(id){
+      const old=state.materialPrices[id];
+      const next=Math.round(old*(0.94+Math.random()*0.12));
+      state.materialPrices[id]=clamp(next,Math.round(ITEMS[id].base*0.7),Math.round(ITEMS[id].base*1.5));
+    });
+    const events=[
+      "商店街の人通りが少し増えた。需要が動いている。",
+      "物流が混み合い、素材価格が変動している。",
+      "新商品の話題で市場が活発になった。",
+      "消費者の好みは日々変わる。価格と在庫を見直そう。"
+    ];
+    if(state.day%3===0)addNews(events[Math.floor(Math.random()*events.length)]);
+    addNews("DAY "+String(finishingDay).padStart(2,"0")+"精算：売上 "+money(revenue)+"、利益 "+money(profit)+"、販売 "+soldTotal+"個。");
+    toast("DAY "+String(finishingDay).padStart(2,"0")+" 精算完了 · 売上 "+money(revenue)+" · 利益 "+money(profit));
+    render();
+    if(activeTab==="dashboard")window.scrollTo({top:0,behavior:"smooth"});
+  }
+  function resetGame(){
+    if(!window.confirm("セーブデータを消して、最初から始めますか？"))return;
+    state=initialState();activeTab="dashboard";
+    try{localStorage.removeItem(SAVE_KEY);}catch(e){}
+    log("デモを最初から開始","info",null);
+    toast("新しい会社でゲームを始めよう！");render();
+  }
+  document.addEventListener("click",function(event){
+    const button=event.target.closest("button");
+    if(!button)return;
+    if(button.dataset.tab){setTab(button.dataset.tab);return;}
+    const action=button.dataset.action;
+    if(!action)return;
+    if(action==="advance")finishDay();
+    else if(action==="buy")buyMaterial(button.dataset.id);
+    else if(action==="produce")produceProduct(button.dataset.id,1);
+    else if(action==="incorporate")incorporate();
+    else if(action==="marketing")marketing();
+    else if(action==="hire")hire();
+    else if(action==="loan")takeLoan();
+    else if(action==="repay")repayLoan();
+    else if(action==="save-name")setCompanyName();
+    else if(action==="reset")resetGame();
+  });
+  document.addEventListener("change",function(event){
+    const input=event.target;
+    if(input.matches("[data-price]")){
+      const id=input.dataset.price;
+      const value=Math.floor(Number(input.value));
+      if(!Number.isFinite(value)||value<1){toast("販売価格は1以上の数字にしてください。");render();return;}
+      state.prices[id]=clamp(value,1,9999999);
+      log(PRODUCTS.find(function(p){return p.id===id;}).name+"の販売価格を変更","info",null);
+      toast("販売価格を保存しました。");render();
+    }
+  });
+  document.addEventListener("keydown",function(event){
+    if(event.key==="Enter"&&event.target&&event.target.id==="company-name-input"){event.preventDefault();setCompanyName();}
+  });
+  render();
+})();
+</script>
+</body>
+</html>
