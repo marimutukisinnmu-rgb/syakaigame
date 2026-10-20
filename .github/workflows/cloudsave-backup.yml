@@ -1,0 +1,78 @@
+name: CloudSave encrypted backup
+
+on:
+  schedule:
+    # 03:00 JST (18:00 UTC on the previous day)
+    - cron: "0 18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudsave-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out game repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install age encryption tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes age
+
+      - name: Export and encrypt CloudSave
+        env:
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+          BACKUP_AGE_RECIPIENT: ${{ secrets.BACKUP_AGE_RECIPIENT }}
+        run: |
+          set -euo pipefail
+          test -n "$APPWRITE_API_KEY" || { echo "APPWRITE_API_KEY secret is missing"; exit 1; }
+          test -n "$BACKUP_AGE_RECIPIENT" || { echo "BACKUP_AGE_RECIPIENT secret is missing"; exit 1; }
+          node scripts/cloudsave-backup.mjs > cloudsave-backup.json
+          test -s cloudsave-backup.json
+          node -e "const fs=require('fs');const x=JSON.parse(fs.readFileSync('cloudsave-backup.json','utf8'));if(x.schemaVersion!==1||!Array.isArray(x.rows)||!Number.isInteger(x.total)||x.total!==x.rows.length)process.exit(1)"
+          mkdir -p encrypted-backup
+          age --recipient "$BACKUP_AGE_RECIPIENT" --output "encrypted-backup/cloudsave-$(date -u +%Y-%m-%dT%H-%M-%SZ).json.age" cloudsave-backup.json
+          rm -f cloudsave-backup.json
+
+      - name: Check out private backup repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.BACKUP_REPO }}
+          token: ${{ secrets.BACKUP_REPO_TOKEN }}
+          path: backup-target
+          persist-credentials: true
+
+      - name: Store backup and prune files older than 30 days
+        env:
+          BACKUP_AGE_RECIPIENT: ${{ secrets.BACKUP_AGE_RECIPIENT }}
+        run: |
+          set -euo pipefail
+          mkdir -p backup-target/cloudsave
+          cp encrypted-backup/*.age backup-target/cloudsave/
+          find backup-target/cloudsave -type f -name 'cloudsave-*.json.age' -mtime +30 -delete
+          cd backup-target
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add cloudsave/
+          if git diff --cached --quiet; then
+            echo "No backup changes to commit."
+          else
+            git commit -m "chore: encrypted CloudSave backup"
+            git push
+          fi
+
+      - name: Remove temporary plaintext
+        if: always()
+        run: rm -f cloudsave-backup.json
