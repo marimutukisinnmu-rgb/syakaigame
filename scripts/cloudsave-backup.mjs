@@ -20,8 +20,8 @@ let total = null;
 
 for (let offset = 0; total === null || offset < total; offset += pageSize) {
   const params = new URLSearchParams();
-  params.append("queries[]", JSON.stringify({ method: "limit", values: [pageSize] }));
-  params.append("queries[]", JSON.stringify({ method: "offset", values: [offset] }));
+  params.append("queries[]", `limit(${pageSize})`);
+  params.append("queries[]", `offset(${offset})`);
 
   const response = await fetch(
     `${endpoint}/tablesdb/${encodeURIComponent(databaseId)}/tables/${encodeURIComponent(tableId)}/rows?${params.toString()}`,
